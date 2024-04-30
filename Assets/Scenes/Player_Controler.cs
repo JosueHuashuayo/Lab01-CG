@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class Player_Controler : MonoBehaviour
 {
-    public float velocidad = 5f; // Velocidad de movimiento del personaje
+    public float velocidad = 10f; // Velocidad de movimiento del personaje
     public Animator animator; // Referencia al componente Animator
 
+
+    private bool waAxisPressed = false;
     Rigidbody rb; // Referencia al componente Rigidbody
 
     void Start()
@@ -18,61 +20,72 @@ public class Player_Controler : MonoBehaviour
     void Update()
     {
         // Verificar si se presionó la tecla espacio
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Prepararse(); // Llamar a la función Prepararse al presionar espacio
-        }
+        if (Input.GetKeyDown(KeyCode.Space)) Prepararse(); // Llamar a la función Prepararse al presionar espacio
+        if (Input.GetKeyUp(KeyCode.Space)) Quieto(); // Llamar a la función Prepararse al presionar espacio
 
-        // Si está preparándose, salir de la función de actualización
-        if (animator.GetBool("Prepararse"))
-            return;
+        if (animator.GetBool("Prepararse")) return;
 
-        // Obtener la entrada del teclado
         float movimientoHorizontal = Input.GetAxis("Horizontal");
         float movimientoVertical = Input.GetAxis("Vertical");
 
-        // Controlar las animaciones según el movimiento
-        if (movimientoHorizontal != 0f || movimientoVertical != 0f)
+        bool axisPressed = movimientoHorizontal != 0f || movimientoVertical != 0f;
+        if (axisPressed)
         {
             Correr(); // Llamar a la función Correr si hay movimiento
             Mover(movimientoHorizontal, movimientoVertical);
         }
         else
         {
-            Quieto(); // Llamar a la función Quieto si no hay movimiento
+            if (waAxisPressed)
+            {
+                Quieto();
+            }
         }
+        waAxisPressed = axisPressed;
+
     }
 
     void Mover(float horizontal, float vertical)
     {
         // Calcular la dirección del movimiento
-        Vector3 movimiento = new Vector3(horizontal, 0f, vertical) * velocidad * Time.deltaTime;
+        Vector3 movimiento = new Vector3(horizontal, 0f, vertical).normalized * velocidad * Time.deltaTime;
 
-        // Aplicar el movimiento al Rigidbody
         rb.MovePosition(transform.position + movimiento);
+        
+        Quaternion rotacionDeseada = Quaternion.LookRotation(movimiento);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, rotacionDeseada, 1000f*Time.deltaTime);
 
-        // Rotar el personaje hacia la dirección del movimiento
-        if (movimiento != Vector3.zero)
-        {
-            transform.rotation = Quaternion.LookRotation(movimiento);
-        }
     }
 
     void Correr()
     {
         animator.SetBool("Correr", true);
+        animator.SetBool("Prepararse", false);
+        animator.SetBool("Lanzar", false);
         animator.SetBool("Quieto", false);
     }
 
     void Quieto()
     {
         animator.SetBool("Correr", false);
+        animator.SetBool("Prepararse", false);
+        animator.SetBool("Lanzar", false);
         animator.SetBool("Quieto", true);
     }
 
     void Prepararse()
     {
-        // Cambiar el valor del parámetro Prepararse a true
-        animator.SetBool("Prepararse", !animator.GetBool("Prepararse"));
+        animator.SetBool("Correr", false);
+        animator.SetBool("Prepararse", true);
+        animator.SetBool("Lanzar", false);
+        animator.SetBool("Quieto", false);
+    }
+
+    void Lanzar()
+    {
+        animator.SetBool("Correr", false);
+        animator.SetBool("Prepararse", false);
+        animator.SetBool("Lanzar", true);
+        animator.SetBool("Quieto", false);
     }
 }
