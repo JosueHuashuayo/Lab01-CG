@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 884123043367675683}
   m_Layer: 15
   m_Name: P_LPSP_PROJ_Bullet_01
-  m_TagString: Untagged
+  m_TagString: Balazo
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5309,6 +5309,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4879702113200764}
     m_Modifications:
+    - target: {fileID: 666518165885707036, guid: d32646a613259b74088b7f7b03f41b14, type: 3}
+      propertyPath: m_TagString
+      value: Balazo
+      objectReference: {fileID: 0}
     - target: {fileID: 3570368154128953444, guid: d32646a613259b74088b7f7b03f41b14, type: 3}
       propertyPath: m_LocalScale.x
       value: 5
