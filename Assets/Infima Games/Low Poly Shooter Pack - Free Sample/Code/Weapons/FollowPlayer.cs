@@ -16,8 +16,18 @@ public class FollowPlayer : MonoBehaviour
     [Tooltip("Velocidad de movimiento vertical (en unidades por segundo).")]
     public float verticalSpeed = 2.0f;
 
+    // Ajustes para el movimiento vertical oscilatorio
+    public float baseAmplitude = 0.5f; // Amplitud base de la oscilación
+    public float baseFrequency = 1.0f; // Frecuencia base de la oscilación (en Hz)
+    public float amplitudeVariation = 0.1f; // Variación de amplitud
+    public float frequencyVariation = 0.1f; // Variación de frecuencia
+
+    public float heightCorrectionForce = 2.0f; // Fuerza de corrección de altura
+
     private Rigidbody rb;
     private Vector3 initialPosition; // Posición inicial del objeto
+    private float randomAmplitude;
+    private float randomFrequency;
 
     void Start()
     {
@@ -26,6 +36,10 @@ public class FollowPlayer : MonoBehaviour
 
         // Guarda la posición inicial del objeto para mantener su altura
         initialPosition = transform.position;
+
+        // Calcula valores aleatorios de amplitud y frecuencia
+        randomAmplitude = Random.Range(-amplitudeVariation, amplitudeVariation);
+        randomFrequency = Random.Range(-frequencyVariation, frequencyVariation);
     }
 
     void FixedUpdate()
@@ -46,24 +60,34 @@ public class FollowPlayer : MonoBehaviour
         float distanceToPlayer = Vector3.Distance(transform.position, new Vector3(playerPosition.x, transform.position.y, playerPosition.z));
 
         // Si la distancia al jugador es mayor que la distancia de parada, sigue al jugador
-        if (distanceToPlayer > stopDistance)
+        Vector3 horizontalVelocity = new Vector3(0, 0, 0);
+
+
+        if (distanceToPlayer > stopDistance && Vector3.Distance(playerPosition, transform.position) < 20)
         {
             // Calcula la velocidad basada en la dirección y la velocidad de seguimiento
-            Vector3 horizontalVelocity = direction * followSpeed;
-
-            // Calcula la velocidad vertical para mantener la altura
-            float verticalVelocity = (initialPosition.y - transform.position.y) * verticalSpeed;
-
-            // Combina las velocidades horizontal y vertical
-            Vector3 velocity = new Vector3(horizontalVelocity.x, verticalVelocity, horizontalVelocity.z);
-
-            // Aplica la velocidad al Rigidbody
-            rb.velocity = velocity;
+            horizontalVelocity = direction * followSpeed;
         }
-        else
-        {
-            // Si la distancia al jugador es menor o igual que la distancia de parada, detén el movimiento
-            rb.velocity = Vector3.zero;
-        }
+
+        // Calcula la amplitud y frecuencia con aleatoriedad
+        float amplitude = baseAmplitude + randomAmplitude;
+        float frequency = baseFrequency + randomFrequency;
+
+        // Calcula la velocidad vertical para mantener la altura
+        float targetHeight = initialPosition.y;
+        float currentHeight = transform.position.y;
+        float heightDifference = targetHeight - currentHeight;
+        float heightCorrectionVelocity = heightDifference * 100;
+
+        float verticalVelocity = Mathf.Sin(Time.time * 2 * Mathf.PI * frequency) * amplitude * verticalSpeed;
+
+        // Combina las velocidades horizontal y vertical
+        Vector3 velocity = new Vector3(horizontalVelocity.x, verticalVelocity, horizontalVelocity.z);
+
+        // Aplica la velocidad al Rigidbody
+        rb.velocity = velocity;
+
+        // Aplica la fuerza de corrección de altura
+        rb.AddForce(Vector3.up * heightCorrectionVelocity, ForceMode.Acceleration);
     }
 }

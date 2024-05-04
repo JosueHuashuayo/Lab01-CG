@@ -22,41 +22,68 @@ public class Projectile : MonoBehaviour {
 	public Transform [] dirtImpactPrefabs;
 	public Transform []	concreteImpactPrefabs;
 
-	private void Start ()
+	[Header("Custom Sounds")]
+	public AudioClip collisionSound;
+    private float maxVolume = 1f; // Volumen máximo del sonido
+
+    [Range(1, 10)]
+    private float maxDistance = 1f;
+
+	private Rigidbody rb;
+
+    private void Start ()
 	{
 		//Grab the game mode service, we need it to access the player character!
 		var gameModeService = ServiceLocator.Current.Get<IGameModeService>();
-		//Ignore the main player character's collision. A little hacky, but it should work.
-		Physics.IgnoreCollision(gameModeService.GetPlayerCharacter().GetComponent<Collider>(), GetComponent<Collider>());
-		
-		//Start destroy timer
-		StartCoroutine (DestroyAfter ());
+        //Ignore the main player character's collision. A little hacky, but it should work.
+        // Physics.IgnoreCollision(gameModeService.GetPlayerCharacter().GetComponent<Collider>(), GetComponent<Collider>());
+
+        //Start destroy timer
+        rb = GetComponent<Rigidbody>();
+
+        StartCoroutine (DestroyAfter ());
 	}
 
 	//If the bullet collides with anything
 	private void OnCollisionEnter (Collision collision)
 	{
 		//Ignore collisions with other projectiles.
-		if (collision.gameObject.GetComponent<Projectile>() != null)
-			return;
-		
-		// //Ignore collision if bullet collides with "Player" tag
-		// if (collision.gameObject.CompareTag("Player")) 
-		// {
-		// 	//Physics.IgnoreCollision (collision.collider);
-		// 	Debug.LogWarning("Collides with player");
-		// 	//Physics.IgnoreCollision(GetComponent<Collider>(), GetComponent<Collider>());
-		//
-		// 	//Ignore player character collision, otherwise this moves it, which is quite odd, and other weird stuff happens!
-		// 	Physics.IgnoreCollision(collision.collider, GetComponent<Collider>());
-		//
-		// 	//Return, otherwise we will destroy with this hit, which we don't want!
-		// 	return;
-		// }
-		//
-		//If destroy on impact is false, start 
-		//coroutine with random destroy timer
-		if (!destroyOnImpact) 
+		//if (collision.gameObject.GetComponent<Projectile>() != null)
+		//	return;
+		if (rb.velocity.magnitude > 1)
+		{
+
+			float distance = Vector3.Distance(transform.position, collision.contacts[0].point);
+
+			// Calcula el volumen basado en la distancia usando una función logarítmica
+			float distanceVolume = Mathf.Clamp01(1f - Mathf.Log10(distance) / Mathf.Log10(maxDistance));
+
+			// Calcula el volumen basado en la velocidad del objeto
+			float velocityVolume = 1f - rb.velocity.magnitude / rb.maxDepenetrationVelocity;
+
+			// Combina los volúmenes, dando mayor peso a la distancia
+			float volume = Mathf.Lerp(distanceVolume, velocityVolume, 0.5f) * maxVolume;
+
+			// Reproduce el sonido en la posición de la colisión con el volumen calculado
+			AudioSource.PlayClipAtPoint(collisionSound, collision.contacts[0].point, volume);
+		}
+        // //Ignore collision if bullet collides with "Player" tag
+        // if (collision.gameObject.CompareTag("Player")) 
+        // {
+        // 	//Physics.IgnoreCollision (collision.collider);
+        // 	Debug.LogWarning("Collides with player");
+        // 	//Physics.IgnoreCollision(GetComponent<Collider>(), GetComponent<Collider>());
+        //
+        // 	//Ignore player character collision, otherwise this moves it, which is quite odd, and other weird stuff happens!
+        // 	Physics.IgnoreCollision(collision.collider, GetComponent<Collider>());
+        //
+        // 	//Return, otherwise we will destroy with this hit, which we don't want!
+        // 	return;
+        // }
+        //
+        //If destroy on impact is false, start 
+        //coroutine with random destroy timer
+        if (!destroyOnImpact) 
 		{
 			StartCoroutine (DestroyTimer ());
 		}
@@ -109,6 +136,15 @@ public class Projectile : MonoBehaviour {
 		//	//Destroy bullet object
 		//	Destroy(gameObject);
 		//}
+		if (collision.transform.tag == "Dron")
+		{
+			//Instantiate random impact prefab from array
+			Instantiate(concreteImpactPrefabs[Random.Range
+				(0, bloodImpactPrefabs.Length)], transform.position,
+				Quaternion.LookRotation(collision.contacts[0].normal));
+			//Destroy bullet object
+			//Destroy(gameObject);
+		}
 
 		//If bullet collides with "Target" tag
 		if (collision.transform.tag == "Target") 
@@ -143,18 +179,19 @@ public class Projectile : MonoBehaviour {
 
 	private IEnumerator DestroyTimer () 
 	{
-		//Wait random time based on min and max values
 		yield return new WaitForSeconds
 			(Random.Range(minDestroyTime, maxDestroyTime));
-		//Destroy bullet object
-		Destroy(gameObject);
+        Instantiate(concreteImpactPrefabs[Random.Range
+        		(0, bloodImpactPrefabs.Length)], transform.position, Quaternion.LookRotation(Vector3.up));
+        Destroy(gameObject);
 	}
 
 	private IEnumerator DestroyAfter () 
 	{
 		//Wait for set amount of time
 		yield return new WaitForSeconds (destroyAfter);
-		//Destroy bullet object
-		Destroy (gameObject);
+        Instantiate(concreteImpactPrefabs[Random.Range
+                (0, bloodImpactPrefabs.Length)], transform.position, Quaternion.LookRotation(Vector3.up));
+        Destroy (gameObject);
 	}
 }

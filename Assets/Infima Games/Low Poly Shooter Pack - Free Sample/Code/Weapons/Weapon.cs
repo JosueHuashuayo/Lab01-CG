@@ -19,7 +19,7 @@ namespace InfimaGames.LowPolyShooterPack
         
         [Tooltip("How fast the projectiles are.")]
         [SerializeField]
-        private float projectileImpulse = 400.0f;
+        protected float projectileImpulse = 400.0f;
 
         [Tooltip("Amount of shots this weapon can shoot in a minute. It determines how fast the weapon shoots.")]
         [SerializeField] 
@@ -47,7 +47,7 @@ namespace InfimaGames.LowPolyShooterPack
         
         [Tooltip("Projectile Prefab. This is the prefab spawned when the weapon shoots.")]
         [SerializeField]
-        private GameObject prefabProjectile;
+        protected GameObject prefabProjectile;
         
         [Tooltip("The AnimatorController a player character needs to use while wielding this weapon.")]
         [SerializeField] 
@@ -99,18 +99,18 @@ namespace InfimaGames.LowPolyShooterPack
         /// <summary>
         /// Amount of ammunition left.
         /// </summary>
-        private int ammunitionCurrent;
+        protected int ammunitionCurrent;
 
         #region Attachment Behaviours
         
         /// <summary>
         /// Equipped Magazine Reference.
         /// </summary>
-        private MagazineBehaviour magazineBehaviour;
+        protected MagazineBehaviour magazineBehaviour;
         /// <summary>
         /// Equipped Muzzle Reference.
         /// </summary>
-        private MuzzleBehaviour muzzleBehaviour;
+        protected MuzzleBehaviour muzzleBehaviour;
 
         #endregion
 
@@ -126,7 +126,7 @@ namespace InfimaGames.LowPolyShooterPack
         /// <summary>
         /// The player character's camera.
         /// </summary>
-        private Transform playerCamera;
+        protected Transform shootDirection;
         
         #endregion
 
@@ -144,7 +144,7 @@ namespace InfimaGames.LowPolyShooterPack
             //Cache the player character.
             characterBehaviour = gameModeService.GetPlayerCharacter();
             //Cache the world camera. We use this in line traces.
-            playerCamera = characterBehaviour.GetCameraWorld().transform;
+            shootDirection = characterBehaviour.GetCameraWorld().transform;
         }
         protected override void Start()
         {
@@ -203,12 +203,12 @@ namespace InfimaGames.LowPolyShooterPack
         }
         public override void Fire(float spreadMultiplier = 1.0f)
         {
-            //We need a muzzle in order to fire this weapon!
+            //Se nesecita un punto de disparo
             if (muzzleBehaviour == null)
                 return;
             
-            //Make sure that we have a camera cached, otherwise we don't really have the ability to perform traces.
-            if (playerCamera == null)
+            //Se nesecita la camara para determinar la dirección
+            if (shootDirection == null)
                 return;
 
             //Get Muzzle Socket. This is the point we fire from.
@@ -222,14 +222,15 @@ namespace InfimaGames.LowPolyShooterPack
 
             //Play all muzzle effects.
             muzzleBehaviour.Effect();
-            
-            //Determine the rotation that we want to shoot our projectile in.
-            Quaternion rotation = Quaternion.LookRotation(playerCamera.forward * 1000.0f - muzzleSocket.position);
+
+
+            //Determinar la rotación en la que queremos disparar nuestro proyectil. La dirección de la camara
+            Quaternion rotation = Quaternion.LookRotation(shootDirection.forward * 1000.0f - muzzleSocket.position);
             
             //If there's something blocking, then we can aim directly at that thing, which will result in more accurate shooting.
-            if (Physics.Raycast(new Ray(playerCamera.position, playerCamera.forward),
-                out RaycastHit hit, maximumDistance, mask))
-                rotation = Quaternion.LookRotation(hit.point - muzzleSocket.position);
+            //if (Physics.Raycast(new Ray(playerCamera.position, playerCamera.forward),
+            //    out RaycastHit hit, maximumDistance, mask))
+            //    rotation = Quaternion.LookRotation(hit.point - muzzleSocket.position);
                 
             //Spawn projectile from the projectile spawn point.
             GameObject projectile = Instantiate(prefabProjectile, muzzleSocket.position, rotation);
