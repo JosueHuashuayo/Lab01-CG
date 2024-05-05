@@ -14,6 +14,8 @@ public class DestroyOnCollison : MonoBehaviour
     [Tooltip("Cantidad de disparos necesarios para destruir este objeto.")]
     [SerializeField] private int life = 3; // Cambia esto a la cantidad de disparos que deseas
 
+    [SerializeField] public FollowPlayer follow;
+
     private int currentLife; // Vida actual del objeto
 
     private void Start()
@@ -30,7 +32,7 @@ public class DestroyOnCollison : MonoBehaviour
             currentLife--;
 
             // Si la vida llega a cero, destruye el objeto
-            if (currentLife <= 0)
+            if (currentLife <= 0 && follow.isActive)
             {
                 // Instancia el objeto de explosión si está definido
                 if (explosionPrefab != null)
@@ -38,7 +40,9 @@ public class DestroyOnCollison : MonoBehaviour
 
                 // Destruye este objeto
                 PlayerPosition.Instance.aumentarContadorDrones();
-                Destroy(gameObject);
+                //Destroy(gameObject);
+
+                follow.isActive = false;
             }
         }
     }

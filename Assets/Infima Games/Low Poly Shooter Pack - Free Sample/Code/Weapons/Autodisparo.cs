@@ -7,6 +7,7 @@ public class Autodisparo : MonoBehaviour
 {
     [SerializeField] private Weapon weapon;
     [SerializeField] private float interval = 1.0f;
+    [SerializeField] public FollowPlayer follow;
 
     public AudioClip[] firingSounds; // Lista de sonidos de disparo
 
@@ -20,16 +21,19 @@ public class Autodisparo : MonoBehaviour
 
     private void Update()
     {
-        // Verificar si hay una línea de visión clara al jugador
-        if (weapon.IsAutomatic() && weapon.HasAmmunition() && timer >= interval && HasLineOfSightToPlayer())
+        if (follow.isActive)
         {
-            // Disparar
-            weapon.Fire();
-            // Reproducir sonido de disparo
-            PlayRandomFiringSound();
-            timer = 0.0f;
+            // Verificar si hay una línea de visión clara al jugador
+            if (weapon.IsAutomatic() && weapon.HasAmmunition() && timer >= interval && HasLineOfSightToPlayer())
+            {
+                // Disparar
+                weapon.Fire();
+                // Reproducir sonido de disparo
+                PlayRandomFiringSound();
+                timer = 0.0f;
+            }
+            timer += Time.deltaTime;
         }
-        timer += Time.deltaTime;
     }
 
     private bool HasLineOfSightToPlayer()
