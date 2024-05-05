@@ -5,6 +5,19 @@ using UnityEngine;
 public class PlayerPosition : MonoBehaviour
 {
     // Singleton para acceder a la posición del jugador desde cualquier parte del código
+    int contador_de_drones = 0;
+
+    public void aumentarContadorDrones()
+    {
+        if(contador_de_drones<15)
+            contador_de_drones++;
+    }
+
+    public int getContadorDrones()
+    {
+        return contador_de_drones;
+    }
+
     public static PlayerPosition Instance { get; private set; }
 
     [Tooltip("Referencia al objeto del jugador.")]

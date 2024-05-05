@@ -37,6 +37,7 @@ public class DestroyOnCollison : MonoBehaviour
                     Instantiate(explosionPrefab, transform.position, Quaternion.identity);
 
                 // Destruye este objeto
+                PlayerPosition.Instance.aumentarContadorDrones();
                 Destroy(gameObject);
             }
         }

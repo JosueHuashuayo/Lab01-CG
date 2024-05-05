@@ -145,7 +145,7 @@ namespace InfimaGames.LowPolyShooterPack
         {
             //Get the equipped weapon!
             equippedWeapon = playerCharacter.GetInventory().GetEquipped();
-            
+            rigidBody.AddForce(Vector3.down*10);
             //Play Sounds!
             PlayFootstepSounds();
         }
