@@ -6,9 +6,6 @@ public class ActivarTexto : MonoBehaviour
     // Referencia al TextMeshProUGUI que se activará
     public TextMeshProUGUI textoContador;
 
-    // Referencia al Singleton PlayerPosition
- 
-
     // Variable para verificar si el texto ya ha sido activado
     private bool textoActivado = false;
 
@@ -20,7 +17,6 @@ public class ActivarTexto : MonoBehaviour
             Debug.LogError("El TextMeshProUGUI no está asignado en el script ActivarTextoCuandoContador15.");
             return;
         }
-
     }
 
     void Update()
@@ -31,7 +27,15 @@ public class ActivarTexto : MonoBehaviour
             // Activamos el TextMeshProUGUI
             textoContador.gameObject.SetActive(true);
             textoActivado = true;
+
+            // Desactivamos el TextMeshProUGUI después de 4 segundos
+            Invoke("DesactivarTexto", 4f);
         }
     }
-}
 
+    // Método para desactivar el TextMeshProUGUI
+    void DesactivarTexto()
+    {
+        textoContador.gameObject.SetActive(false);
+    }
+}
